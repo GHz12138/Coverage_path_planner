@@ -1,6 +1,6 @@
 
-/*This code is used to plan the trajectory of the robot  
-*/
+/*This code is used to plan the trajectory of the robot
+ */
 
 #include <ros/ros.h>
 #include <stdio.h>
@@ -71,7 +71,7 @@ public:
   vector<Goal> Path;
 
   Path_planned();
-  //Path_planned(float x, float y, bool visited);
+  // Path_planned(float x, float y, bool visited);
   void addGoal(float X, float Y, bool visit);
 };
 
@@ -79,7 +79,7 @@ Path_planned::Path_planned()
 {
 }
 
-//Path_planned(float x, float y, bool visited)
+// Path_planned(float x, float y, bool visited)
 
 void Path_planned::addGoal(float X, float Y, bool visit)
 {
@@ -94,7 +94,7 @@ Path_planned planned_path;
 nav_msgs::Path passed_path;
 ros::Publisher pub_passed_path;
 void pose_callback(const nav_msgs::Odometry &poses)
-{ //里程计回调函数,用来计算当前机器人位置与前面目标点的距离,判断是否要发新的幕摆点
+{ // 里程计回调函数,用来计算当前机器人位置与前面目标点的距离,判断是否要发新的目标点
   x_current = poses.pose.pose.position.x;
   y_current = poses.pose.pose.position.y;
   passed_path.header = poses.header;
@@ -108,10 +108,10 @@ void pose_callback(const nav_msgs::Odometry &poses)
 int taille_last_path = 0;
 bool new_path = false;
 
-//接受规划的路径
+// 接收规划的路径
 void path_callback(const nav_msgs::Path &path)
 {
-  //注意为了rviz显示方便 路径一直在发,但是这里只用接受一次就好,当规划的路径发生变化时候再重新装载
+  // 注意为了rviz显示方便 路径一直在发,但是这里只用接受一次就好,当规划的路径发生变化时候再重新装载
   if ((planned_path.Path.size() == 0) || (path.poses.size() != taille_last_path))
   {
     planned_path.Path.clear();
@@ -122,7 +122,7 @@ void path_callback(const nav_msgs::Path &path)
 
       cout << path.poses[i].pose.position.x << " " << path.poses[i].pose.position.y << endl;
     }
-    cout << "Recv path size:" << path.poses.size() << endl;
+    cout << "Recv path size: " << path.poses.size() << endl;
     taille_last_path = path.poses.size();
   }
 }
@@ -135,8 +135,8 @@ int main(int argc, char *argv[])
   ros::init(argc, argv, "next_goal");
   ros::NodeHandle next_goal;
   ros::Subscriber sub1 = next_goal.subscribe("/odom", 1000, pose_callback);
-  ros::Subscriber sub2 = next_goal.subscribe("/path_planning_node/cleaning_plan_nodehandle/cleaning_path", 1000, path_callback);
-
+  ros::Subscriber sub2 = next_goal.subscribe("/coverage_planner_node/cleaning_plan_nodehandle/cleaning_path", 1000, path_callback);
+  // ros::Subscriber sub3 = next_goal.subscribe("/path_planning_node/cleaning_plan_nodehandle/cleaning_path", 1000, path_callback);
   ros::Publisher pub1 = next_goal.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 1000);
   pub_passed_path = next_goal.advertise<nav_msgs::Path>("/clean_robot/passed_path", 1000);
 
@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
   int count = 0;
   double angle;
   bool goal_reached = false;
-  //获取发送下一个点的阈值
+  // 获取发送下一个点的阈值
   if (!next_goal.getParam("/NextGoal/tolerance_goal", normeNextGoal))
   {
     ROS_ERROR("Please set your tolerance_goal");
@@ -162,11 +162,11 @@ int main(int argc, char *argv[])
       count = 0;
       new_path = false;
     }
-    //当前处理的点
-    cout << " count : " << count << endl;
+    // 当前处理的点
+    //  cout << " count : " << count << endl;
     if (!planned_path.Path.empty())
     {
-      //当前距离达到了
+      // 当前距离达到了
       if (sqrt(pow(x_current - planned_path.Path[count].x, 2) + pow(y_current - planned_path.Path[count].y, 2)) <= normeNextGoal)
       {
         count++;
@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
         goal_msgs.pose.position.y = planned_path.Path[count].y;
         goal_msgs.pose.position.z = 0;
         if (count < planned_path.Path.size())
-        {//计算发布的yaw，不过还有bug 但是不影响使用，yaw不会产生太大影响
+        { // 计算发布的yaw，不过还有bug 但是不影响使用，yaw不会产生太大影响
           angle = atan2(planned_path.Path[count + 1].y - planned_path.Path[count].y, planned_path.Path[count + 1].x - planned_path.Path[count].x);
         }
         else
@@ -202,17 +202,17 @@ int main(int argc, char *argv[])
           goal_msgs.pose.orientation.z = 2;
         }
 
-        cout << " NEW GOAL " << endl;
-        cout << " x = " << planned_path.Path[count].x << " y = " << planned_path.Path[count].y << endl;
+        cout << "NEW GOAL " << endl;
+        cout << "x = " << planned_path.Path[count].x << " y = " << planned_path.Path[count].y << endl;
 
         goal_reached = true;
         pub1.publish(goal_msgs);
       }
-      cout << x_current << " " << y_current << endl;
-      //当前
-      cout << planned_path.Path[count].x << " " << planned_path.Path[count].y << endl;
-      //目标
-      cout << " DISTANCE : " << sqrt((x_current - planned_path.Path[count].x) * (x_current - planned_path.Path[count].x) + (y_current - planned_path.Path[count].y) * (y_current - planned_path.Path[count].y)) << endl;
+      // cout << x_current << " " << y_current << endl;
+      // 当前
+      // cout << planned_path.Path[count].x << " " << planned_path.Path[count].y << endl;
+      // 目标
+      // cout << "DISTANCE: " << sqrt((x_current - planned_path.Path[count].x) * (x_current - planned_path.Path[count].x) + (y_current - planned_path.Path[count].y) * (y_current - planned_path.Path[count].y)) << endl;
       // 距离公式
     }
 

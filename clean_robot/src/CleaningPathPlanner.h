@@ -2,7 +2,7 @@
  * @brief: cleaning robot path planning
  * @author: Wang
  * @date: 20170702
-***/
+ ***/
 
 #ifndef CLEANINGPATHPLANNING_H
 #define CLEANINGPATHPLANNING_H
@@ -33,7 +33,6 @@ struct cellIndex
     double theta; //{0, 45,90,135,180,225,270,315}     角度信息   hjr 注
 };
 
-
 /*************************************************
  *
  * 读取栅格地图并根据占据信息获取其对应的空闲（可行走）空间，
@@ -43,7 +42,7 @@ struct cellIndex
 class CleaningPathPlanning
 {
 public:
-    //CleaningPathPlanning() = delete;
+    // CleaningPathPlanning() = delete;
     CleaningPathPlanning(costmap_2d::Costmap2DROS *costmap2d_ros);
 
     vector<geometry_msgs::PoseStamped> GetPathInROS();
@@ -52,13 +51,12 @@ public:
     void SetCoveredGrid(double wx, double wy);
     int GetSizeOfCell() { return this->SIZE_OF_CELL; }
     bool Boundingjudge(int a, int b);
-    //for visualization
+    // for visualization
     void PublishCoveragePath();
     void PublishGrid();
 
-
 private:
-    //helper functions.
+    // helper functions.
     bool initializeMats();
     bool initializeCoveredGrid();
     void getCellMatAndFreeSpace(Mat srcImg, Mat &cellMat, vector<cellIndex> &freeSpaceVec);
@@ -87,13 +85,13 @@ private:
     ros::Publisher grid_pub_;
     nav_msgs::OccupancyGrid covered_path_grid_;
 
-    //tf::TransformListener &tf_;
+    // tf::TransformListener &tf_;
     geometry_msgs::PoseStamped initPose_;
-    
+
     costmap_2d::Costmap2D *costmap2d_;
     costmap_2d::Costmap2DROS *costmap2d_ros_;
 
-    int SIZE_OF_CELL; //must be odd number.
+    int SIZE_OF_CELL; // must be odd number.
     int GRID_COVERED_VALUE;
 };
 

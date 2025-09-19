@@ -18,12 +18,13 @@ int main(int argc, char** argv) {
     tf2_ros::Buffer tf;
     tf2_ros::TransformListener tf2_listener(tf);
     costmap_2d::Costmap2DROS lcr("cleaning_costmap", tf);
+    lcr.getCostmap();
     //planner_costmap_ros_->pause();
 
     ros::Duration(5).sleep();
     CleaningPathPlanning clr(&lcr);
     clr.GetPathInROS();
-    //clr.GetBorderTrackingPathInROS();   
+    // clr.GetBorderTrackingPathInROS();   
     ros::Rate r(1);
     while(ros::ok()){       
       clr.PublishCoveragePath();

@@ -1,0 +1,22 @@
+<!-- 组合小车底盘与imu 激光雷达-->
+<robot name="my_car_camera_laser" xmlns:xacro="http://wiki.ros.org/xacro" reference= "base_footprint_radius">
+
+  <!--注意inliude的顺序！-->
+    <xacro:include filename="my_inertial.xacro" />
+    <xacro:include filename="my_car_Cylider.xacro" />
+    <xacro:include filename="my_vodyne_gazebo.xacro" />
+    <xacro:include filename="my_imu_gazebo.xacro" />
+
+    <!--rplidar仿真的xacro文件-->
+    <!-- <xacro:include filename="$(find urdf_gazebo)/urdf/sensor/my_sensor_rplidar.xacro" /> -->
+
+    <!--摄像头仿真的xacro文件-->
+    <!--xacro:include filename="$(find urdf_gazebo)/urdf/sensor/my_sensor_camera.xacro" /-->
+
+    <!--imu仿真的xacro文件-->
+    <xacro:include filename="$(find urdf_gazebo)/urdf/xacro/my_sensor_imu.xacro" />
+
+    <!--vodyne仿真的xacro文件-->
+    <xacro:include filename="$(find urdf_gazebo)/urdf/xacro/my_sensor_laser.xacro" />
+
+</robot>

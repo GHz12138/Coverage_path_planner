@@ -173,10 +173,10 @@ include
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-# catkin_install_python(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+catkin_install_python(PROGRAMS
+  scripts/carto2gmap.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
@@ -219,10 +219,14 @@ include
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(path_planning_node src/PathPlanningNode.cpp src/CleaningPathPlanner.cpp )
+add_executable(path_planning_node src/PathPlanningNode.cpp src/CleaningPathPlanner.cpp)
 target_link_libraries(path_planning_node ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 add_executable(next_goal src/next_goal.cpp)
 target_link_libraries(next_goal
 	${catkin_LIBRARIES}
 )
+
+
+add_executable(coverage_planner_node src/coverage_test.cpp src/coverage_planner.cpp)
+target_link_libraries(coverage_planner_node ${catkin_LIBRARIES} ${OpenCV_LIBS})
