@@ -1,0 +1,11 @@
+<!-- 组合小车底盘与摄像头 -->
+<robot name="car" xmlns:xacro="http://wiki.ros.org/xacro">
+    <xacro:include filename="head.xacro" />
+    <xacro:include filename="base.xacro" />
+    <xacro:include filename="camera.xacro" />
+    <xacro:include filename="laser.xacro" />
+    <xacro:include filename="move.xacro" />
+    <xacro:include filename="lidar_sensor.xacro" />
+    <xacro:include filename="imu.xacro" />
+    <xacro:include filename="imu_sensor.xacro" />
+</robot>

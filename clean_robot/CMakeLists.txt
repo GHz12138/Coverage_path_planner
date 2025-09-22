@@ -230,3 +230,8 @@ target_link_libraries(next_goal
 
 add_executable(coverage_planner_node src/coverage_test.cpp src/coverage_planner.cpp)
 target_link_libraries(coverage_planner_node ${catkin_LIBRARIES} ${OpenCV_LIBS})
+
+add_executable(publish_goal src/publish_goal.cpp)
+target_link_libraries(publish_goal
+	${catkin_LIBRARIES}
+)

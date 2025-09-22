@@ -135,8 +135,8 @@ int main(int argc, char *argv[])
   ros::init(argc, argv, "next_goal");
   ros::NodeHandle next_goal;
   ros::Subscriber sub1 = next_goal.subscribe("/odom", 1000, pose_callback);
-  // ros::Subscriber sub2 = next_goal.subscribe("/coverage_planner_node/cleaning_plan_nodehandle/cleaning_path", 1000, path_callback);
-  ros::Subscriber sub3 = next_goal.subscribe("/path_planning_node/cleaning_plan_nodehandle/cleaning_path", 1000, path_callback);
+  ros::Subscriber sub2 = next_goal.subscribe("/coverage_planner_node/cleaning_plan_nodehandle/cleaning_path", 1000, path_callback);
+  // ros::Subscriber sub3 = next_goal.subscribe("/path_planning_node/cleaning_plan_nodehandle/cleaning_path", 1000, path_callback);
   ros::Publisher pub1 = next_goal.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 1000);
   pub_passed_path = next_goal.advertise<nav_msgs::Path>("/clean_robot/passed_path", 1000);
 
