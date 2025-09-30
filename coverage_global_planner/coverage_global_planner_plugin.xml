@@ -1,0 +1,9 @@
+<library path="lib/libcoverage_global_planner">
+  <class name="coverage_planner/CoveragePlanner"
+         type="coverage_planner::CoveragePlanner"
+         base_class_type="nav_core::BaseGlobalPlanner">
+    <description>
+      A coverage path planner plugin for move_base
+    </description>
+  </class>
+</library>

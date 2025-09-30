@@ -1,4 +1,5 @@
-<robot name="my_car_move" xmlns:xacro="http://wiki.ros.org/xacro">
+<robot name="my_car_move"
+    xmlns:xacro="http://wiki.ros.org/xacro">
 
     <!-- 传动实现:用于连接控制器与关节 -->
     <xacro:macro name="joint_trans" params="joint_name">
@@ -30,17 +31,17 @@
             <alwaysOn>true</alwaysOn>
             <updateRate>100.0</updateRate>
             <legacyMode>true</legacyMode>
-            <leftJoint>left_wheel2base_link</leftJoint> <!-- 左轮 -->
-            <rightJoint>right_wheel2base_link</rightJoint> <!-- 右轮 -->
-            <wheelSeparation>${base_link_radius * 2}</wheelSeparation> <!-- 车轮间距 -->
-            <wheelDiameter>${wheel_radius * 2}</wheelDiameter> <!-- 车轮直径 -->
+            <leftJoint>left_wheel2base_link</leftJoint>            <!-- 左轮 -->
+            <rightJoint>right_wheel2base_link</rightJoint>            <!-- 右轮 -->
+            <wheelSeparation>${base_link_radius * 2}</wheelSeparation>            <!-- 车轮间距 -->
+            <wheelDiameter>${wheel_radius * 2}</wheelDiameter>            <!-- 车轮直径 -->
             <broadcastTF>1</broadcastTF>
             <wheelTorque>30</wheelTorque>
             <wheelAcceleration>1.8</wheelAcceleration>
-            <commandTopic>cmd_vel</commandTopic> <!-- 运动控制话题 -->
-            <odometryFrame>odom</odometryFrame> 
-            <odometryTopic>odom</odometryTopic> <!-- 里程计话题 -->
-            <robotBaseFrame>base_footprint</robotBaseFrame> <!-- 根坐标系 -->
+            <commandTopic>cmd_vel</commandTopic>            <!-- 运动控制话题 -->
+            <odometryFrame>odom</odometryFrame>
+            <odometryTopic>odom</odometryTopic>            <!-- 里程计话题 -->
+            <robotBaseFrame>base_footprint</robotBaseFrame>            <!-- 根坐标系 -->
         </plugin>
     </gazebo>
 

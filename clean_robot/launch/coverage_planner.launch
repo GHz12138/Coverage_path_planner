@@ -1,29 +1,21 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="model" value="burger" doc="model type [burger, waffle, waffle_pi]"/>
-    <arg name="configuration_basename" default="turtlebot3_lds_2d.lua"/>
-    <arg name="map_file" default="$(find clean_robot)/maps/map/20250910_07-46-55.yaml"/>
+    <!-- <arg name="map_file" default="$(find clean_robot)/maps/map/20250925_03-28-14.yaml"/> -->
     <arg name="open_rviz" default="true"/>
     <!-- 启动仿真环境 -->
     <include file="$(find clean_robot)/launch/pool_gazebo.launch"/>
 
-    <!-- 关节以及机器人状态发布节点 -->
-    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
-    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
-
     <!-- 启动导航系统，用作目标点路径规划，实现躲避小障碍物-->
     <include file="$(find clean_robot)/launch/my_navigation.launch">
-        <arg name="model" value="$(arg model)" />
-        <arg name="map_file" value="$(arg map_file)"/>
     </include>
 
     <!-- 清扫路径规划器 -->
-    <node pkg="clean_robot" type="coverage_planner_node" respawn="false" name="coverage_planner_node" output="screen" clear_params="true">
+    <!-- <node pkg="clean_robot" type="coverage_planner_node" respawn="false" name="coverage_planner_node" output="screen" clear_params="true">
         <rosparam file="$(find clean_robot)/config/costmap_common_params.yaml" command="load" ns="cleaning_costmap" />
         <rosparam file="$(find clean_robot)/config/cleaning_costmap_params.yaml" command="load" />
-    </node>
+    </node> -->
     <!-- 根据清扫的路径向导航系统发送目标点位 -->
     <!-- 设定距离当前目标点多进时候发布下一个目标点 -->
-    <param name="/NextGoal/tolerance_goal" value="0.3" />
-    <node pkg="clean_robot" type="publish_goal" respawn="true" name="publish_goal" output="screen" />
+    <!-- <param name="/NextGoal/tolerance_goal" value="0.25" />
+    <node pkg="clean_robot" type="publish_goal" respawn="true" name="publish_goal" output="screen" /> -->
 </launch>

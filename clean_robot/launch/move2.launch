@@ -1,0 +1,28 @@
+<!-- <launch>
+
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" clear_params="true">
+        <rosparam file="$(find clean_robot)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+        <rosparam file="$(find clean_robot)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(find clean_robot)/param/local_costmap_params.yaml" command="load" />
+        <rosparam file="$(find clean_robot)/param/global_costmap_params.yaml" command="load" />
+        <rosparam file="$(find clean_robot)/param/base_local_planner_params.yaml" command="load" />
+    </node>
+
+</launch> -->
+
+<launch>
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" clear_params="true">
+        <rosparam file="$(find clean_robot)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+        <rosparam file="$(find clean_robot)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(find clean_robot)/param/local_costmap_params.yaml" command="load" />
+        <rosparam file="$(find clean_robot)/param/global_costmap_params.yaml" command="load" />
+        <!-- <rosparam file="$(find clean_robot)/param/base_local_planner_params.yaml" command="load" /> -->
+        <rosparam file="$(find clean_robot)/param/move_base_params.yaml" command="load" />
+        <!-- <param name="base_global_planner" value="global_planner/GlobalPlanner" /> -->
+        <param name="base_global_planner" value="coverage_planner/CoveragePlanner" />
+        <!-- <rosparam file="$(find clean_robot)/param/global_planner_params.yaml" command="load" />
+        <rosparam file="$(find clean_robot)/param/dwa_local_planner_params.yaml" command="load" /> -->
+
+    </node>
+</launch>
+

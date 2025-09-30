@@ -22,6 +22,6 @@
     </node>
     <!-- 根据清扫的路径向导航系统发送目标点位 -->
     <!-- 设定距离当前目标点多进时候发布下一个目标点 -->
-    <param name="/NextGoal/tolerance_goal" value="0.3" />
+    <param name="/NextGoal/tolerance_goal" value="1.0" />
     <node pkg="clean_robot" type="next_goal" respawn="true" name="next_goal" output="screen" />
 </launch>

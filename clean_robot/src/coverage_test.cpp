@@ -93,23 +93,29 @@ int main(int argc, char **argv)
     double clean_distance = 0.2 / resolution;
     CoveragePlanner cover_test;
     geometry_msgs::PoseStamped initPose_;
+    bool isok = lcr.getRobotPose(initPose_);
+    if (!isok)
+    {
+        ROS_INFO("Failed to get robot location! Please check where goes wrong!");
+        return 0;
+    }
     unsigned int mx, my;
     double wx = initPose_.pose.position.x; // 获取原点的x坐标
     double wy = initPose_.pose.position.y;
     lcr.getCostmap()->worldToMap(wx, wy, mx, my);
     int init_y = costmap2d->getSizeInCellsY() - my - 1;
     int init_x = mx;
-    Point2D start = {init_x + 1, init_y + 2};
+    Point2D start = {init_x, init_y};
     std::cout << "Start point in map coordinates: (" << start.x << ", " << start.y << ")" << std::endl;
 
     std::deque<Point2D> coverage_path = cover_test.planner(map, robot_radius, clean_distance, start);
 
     // 打印 coverage_path 前十个元素
-    for (size_t i = 0; i < std::min<size_t>(10, coverage_path.size()); ++i)
-    {
-        const auto &pt = coverage_path[i];
-        std::cout << "coverage_path[" << i << "]: x=" << pt.x << ", y=" << pt.y << std::endl;
-    }
+    // for (size_t i = 0; i < std::min<size_t>(10, coverage_path.size()); ++i)
+    // {
+    //     const auto &pt = coverage_path[i];
+    //     std::cout << "coverage_path[" << i << "]: x=" << pt.x << ", y=" << pt.y << std::endl;
+    // }
     geometry_msgs::PoseStamped posestamped;
     geometry_msgs::Pose pose;
     bool has_prev = false;

@@ -1,0 +1,50 @@
+TrajectoryPlannerROS: 
+  # Robot Configuration Parameters
+  max_vel_x: 0.2 # x方向前进最大线速度
+  min_vel_x: -0.1 # x方向倒退最大线速度
+
+  max_vel_theta: 0.3 # 正向旋转最大速度
+  min_vel_theta: -0.3 # 反向旋转最大速度
+  min_in_place_vel_theta: 0.1 # 原地转向最大速度（思考：180度转向速度慢，是否因此导致？）
+
+  acc_lim_x: 0.2 # x方向的最大线加速度
+  acc_lim_y: 0.2
+  acc_lim_theta: 0.2 # 最大角加速度
+
+  # 到达目标位置的误差冗余参数
+  xy_goal_tolerance: 0.2 # xy平面上的直线距离误差；
+  yaw_goal_tolerance: 0.05 # 角度朝向误差；
+  # latch_xy_goal_tolerance: false # 什么含义？
+
+  # 是否全向轮机器人，否则为差动轮；
+  holonomic_robot: false
+
+  # 动态路径规划仿真预测时间步长
+  sim_time: 2.0 # 预测时间；
+  sim_granularity: 0.05 # 细分步长（距离）；
+  angular_sim_granularity: 0.087 # 细分转向（角度）；
+  vx_samples: 10 # x 方向速度采样个数；
+  vtheta_samples: 20 # 角速度采样个数；
+  controller_frequency: 10 # 局部规划的跟新频率；
+  # 注解与思考：更新考虑因素与地图及机器人状态有关系，每一次更新后产生的最优轨迹的线速度、角速度位固定值，即一次更新仅能产生一个圆弧运动，多次更新就可以产生复杂运动曲线。
+
+  # 轨迹评分方面的参数
+  # (cost =
+  #   pdist_scale * (轨迹横向偏差)
+  #   + gdist_scale * (轨迹局部目标距离)
+  #   + occdist_scale * (障碍物代价)
+
+  meter_scoring: false # 是否使用米作为单位.（建议使用，这样更标准，不依赖地图分辨率）；
+  pdist_scale: 0.6 # 横向偏差权重；
+  gdist_scale: 0.8 # 目标距离权重；
+  occdist_scale: 0.1 # 障碍物代价权重 ；
+  heading_lookahead: 0.325 # 原地转向是前瞻距离；
+  heading_scoring: false # 朝向评分（需要研究其实际作用）；
+  heading_scoring_timestep: 0.8 # 判断朝向代价的时间步长；
+  dwa: true # 选择使用 DWA还是 Trajectory Rollout方法；
+  publish_cost_grid_pc: false #是否发布代价网格图；
+
+  # 放置震荡
+  oscillation_reset_dist: 0.4 #移动最小距离后，震荡约束条件复位；
+
+  forward_point_distance: 0.8 # （这是什么含义？）

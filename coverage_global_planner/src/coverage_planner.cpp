@@ -5,7 +5,7 @@
  * 源代码是借鉴 Richey Huang  进行了少量了修改整理！
  * 站在前人的肩膀上可以走的更快！！！
  */
-#include "coverage_planner.h"
+#include "../include/coverage_planner.h"
 
 // 是否打卡过程显示
 #define Process_Visual 0
@@ -17,8 +17,62 @@ enum VisualizationMode
     ROBOT_MODE
 };
 
-namespace coverageplanner
+namespace coverage_global_planner 
 {
+    CoveragePlanner::CoveragePlanner(std::string name, costmap_2d::Costmap2DROS *costmap_ros)
+        : costmap_ros_(costmap_ros), initialized_(false)
+    {
+        costmap_ros_ = costmap_ros;
+        costmap_ = costmap_ros_->getCostmap();
+        sizex_ = costmap_->getSizeInCellsX(); // 列数（宽度）
+        sizey_ = costmap_->getSizeInCellsY(); // 行数（高度）
+        double resolution = costmap_->getResolution();
+        // cv::Mat1b map(sizey, sizex); // rows=sizey, cols=sizex
+        robot_radius_ = 0.2 / resolution; // 机器人半径（以像素为单位）
+        std::cout << "Robot radius in pixels: " << robot_radius_ << std::endl;
+        clean_distance_ = 0.2 / resolution;
+        map_ = cv::Mat1b(sizey_, sizex_);
+        for (int r = 0; r < sizey_; r++)
+        {
+            for (int c = 0; c < sizex_; c++)
+            {
+                unsigned char cost = costmap_->getCost(c, sizey_ - r - 1);
+
+                // 映射规则：
+                if (cost == costmap_2d::FREE_SPACE)
+                {
+                    map_(r, c) = 255; // 空闲区域显示为白色
+                }
+                else if (cost == costmap_2d::LETHAL_OBSTACLE)
+                {
+                    map_(r, c) = 0; // 障碍物显示为黑色
+                }
+                else if (cost == costmap_2d::NO_INFORMATION)
+                {
+                    map_(r, c) = 127; // 未知区域显示为灰色
+                }
+                else
+                {
+                    map_(r, c) = 127; // 膨胀层/其他障碍：浅灰
+                }
+            }
+        }
+    }
+
+    void CoveragePlanner::initialize(std::string name, costmap_2d::Costmap2DROS *costmap_ros)
+    {
+        if (!initialized_)
+        {
+            ros::NodeHandle private_nh("~/" + name);
+            ros::Publisher plan_pub = private_nh.advertise<nav_msgs::Path>("cleaning_path", 1);
+
+            make_plan_srv_ = private_nh.advertiseService("make_plan", &CoveragePlanner::makePlanService, this);
+            initialized_ = true;
+        }
+        else
+            ROS_WARN("This planner has already been initialized... doing nothing");
+    }
+
     // 覆盖路径规划器
     std::deque<Point2D> CoveragePlanner::planner(const cv::Mat &clean_map, double robot_radius, double clean_distance, Point2D start)
     {
@@ -37,7 +91,7 @@ namespace coverageplanner
             std::vector<std::vector<cv::Point>> obstacle_contours;
             // 提取并进行显示
             extractContours(map, wall_contours, obstacle_contours, robot_radius);
-            if (Process_Visual)
+            if (0)
             {
                 showExtractedContours(map, wall_contours);
                 showExtractedContours(map, obstacle_contours);
@@ -48,7 +102,7 @@ namespace coverageplanner
             Polygon wall = constructWall(map, wall_contours.front());
             // 得到区域分解轮廓
             std::vector<CellNode> cell_graph = constructCellGraph(map, wall_contours, obstacle_contours, wall, obstacles);
-            if (Process_Visual)
+            if (0)
             {
                 // checkPointType(map, wall, obstacles);
                 std::cout << "cell_graph ";
@@ -60,7 +114,7 @@ namespace coverageplanner
             // staticPathPlanning(cell_graph, start, clean_distance);
             // std::cout << "Start point: (" << start.x << ", " << start.y << ")" << std::endl;
             std::deque<std::deque<Point2D>> original_planning_path = staticPathPlanning(cell_graph, start, clean_distance);
-            if (Process_Visual)
+            if (0)
             {
                 printPathNodes(original_planning_path);
             }
@@ -80,6 +134,68 @@ namespace coverageplanner
             std::cout << "path.size(): " << path.size() << std::endl;
             return path;
         }
+    }
+
+    bool CoveragePlanner::makePlan(const geometry_msgs::PoseStamped &start, const geometry_msgs::PoseStamped &goal, std::vector<geometry_msgs::PoseStamped> &plan)
+    {
+        unsigned int mx, my;
+        double wx = start.pose.position.x; // 获取原点的x坐标
+        double wy = start.pose.position.y;
+        costmap_ros_->getCostmap()->worldToMap(wx, wy, mx, my);
+        int init_y = costmap_->getSizeInCellsY() - my - 1;
+        int init_x = mx;
+        Point2D initpose = {init_x, init_y};
+        std::deque<Point2D> coverage_path = planner(map_, robot_radius_, clean_distance_, initpose);
+        geometry_msgs::PoseStamped posestamped;
+        geometry_msgs::Pose pose;
+        bool has_prev = false;
+        double prev_wx = 0.0, prev_wy = 0.0;
+        for (const auto &point : coverage_path)
+        {
+            int transformed_y = sizey_ - point.y - 1;
+
+            double wx, wy;
+            costmap_->mapToWorld(point.x, transformed_y, wx, wy);
+
+            if (has_prev)
+            {
+                double dx = wx - prev_wx;
+                double dy = wy - prev_wy;
+                double yaw = std::atan2(dy, dx);
+                pose.orientation = tf::createQuaternionMsgFromYaw(yaw);
+            }
+            else
+            {
+                pose.orientation = tf::createQuaternionMsgFromYaw(0.0);
+                has_prev = true;
+            }
+
+            pose.position.x = wx;
+            pose.position.y = wy;
+            pose.position.z = 0.0;
+
+            prev_wx = wx;
+            prev_wy = wy;
+
+            geometry_msgs::PoseStamped posestamped;
+            posestamped.header.stamp = ros::Time::now();
+            posestamped.header.frame_id = "map";
+            posestamped.pose = pose;
+
+            plan.push_back(posestamped);
+        }
+
+        return true;
+    }
+
+    bool CoveragePlanner::makePlanService(nav_msgs::GetPlan::Request &req, nav_msgs::GetPlan::Response &resp)
+    {
+        makePlan(req.start, req.start, resp.plan.poses);
+
+        resp.plan.header.stamp = ros::Time::now();
+        resp.plan.header.frame_id = "map";
+
+        return true;
     }
 
     void CoveragePlanner::extractContours(const cv::Mat &original_map, std::vector<std::vector<cv::Point>> &wall_contours, std::vector<std::vector<cv::Point>> &obstacle_contours, double robot_radius)
@@ -297,10 +413,8 @@ namespace coverageplanner
 
         // 寻找起始轮廓id
         int start_cell_index = determineCellIndex(cell_graph, start_point).front();
-
-        // 起点至起始轮廓第一个点规划的路径
+        // 起点至起始轮廓第一个点 规划的路径
         std::deque<Point2D> init_path = walkInsideCell(cell_graph[start_cell_index], start_point, computeCellCornerPoints(cell_graph[start_cell_index])[TOP_LEFT]);
-
         std::deque<Point2D> local_path;
         local_path.assign(init_path.begin(), init_path.end());
 
@@ -447,79 +561,20 @@ namespace coverageplanner
         return wrapped_index;
     }
 
-    // std::vector<int> CoveragePlanner::determineCellIndex(std::vector<CellNode> &cell_graph, const Point2D &point)
-    // {
-    //     std::vector<int> cell_index;
-
-    //     for (int i = 0; i < cell_graph.size(); i++)
-    //     {
-    //         for (int j = 0; j < cell_graph[i].ceiling.size(); j++)
-    //         {
-    //             if (point.x == cell_graph[i].ceiling[j].x && point.y >= cell_graph[i].ceiling[j].y && point.y <= cell_graph[i].floor[j].y)
-    //             {
-    //                 cell_index.emplace_back(int(i));
-    //             }
-    //         }
-    //     }
-    //     return cell_index;
-    // }
     std::vector<int> CoveragePlanner::determineCellIndex(std::vector<CellNode> &cell_graph, const Point2D &point)
     {
         std::vector<int> cell_index;
 
-        // Step 1: 原始精确匹配
         for (int i = 0; i < cell_graph.size(); i++)
         {
             for (int j = 0; j < cell_graph[i].ceiling.size(); j++)
             {
-                if (point.x == cell_graph[i].ceiling[j].x &&
-                    point.y >= cell_graph[i].ceiling[j].y &&
-                    point.y <= cell_graph[i].floor[j].y)
+                if (point.x == cell_graph[i].ceiling[j].x && point.y >= cell_graph[i].ceiling[j].y && point.y <= cell_graph[i].floor[j].y)
                 {
-                    cell_index.emplace_back(i);
+                    cell_index.emplace_back(int(i));
                 }
             }
         }
-
-        // Step 2: 如果没有匹配到，找最近的 cell
-        if (cell_index.empty())
-        {
-            double min_dist = std::numeric_limits<double>::max();
-            int closest_cell = -1;
-
-            for (int i = 0; i < cell_graph.size(); i++)
-            {
-                for (int j = 0; j < cell_graph[i].ceiling.size(); j++)
-                {
-                    // 计算 point 到该 cell 垂直线段的最近距离
-                    double cx = cell_graph[i].ceiling[j].x;
-                    double cy1 = cell_graph[i].ceiling[j].y;
-                    double cy2 = cell_graph[i].floor[j].y;
-
-                    double dx = std::abs(point.x - cx);
-
-                    double dy = 0.0;
-                    if (point.y < cy1)
-                        dy = cy1 - point.y;
-                    else if (point.y > cy2)
-                        dy = point.y - cy2;
-
-                    double dist = std::sqrt(dx * dx + dy * dy);
-
-                    if (dist < min_dist)
-                    {
-                        min_dist = dist;
-                        closest_cell = i;
-                    }
-                }
-            }
-
-            if (closest_cell != -1)
-            {
-                cell_index.emplace_back(closest_cell);
-            }
-        }
-
         return cell_index;
     }
 
@@ -3405,10 +3460,11 @@ namespace coverageplanner
         {
             for (const auto &point : subpath)
             {
-                std::cout << "subpath: " << point.x << ", " << point.y << std::endl;
+                std::cout << point.x << ", " << point.y << std::endl;
             }
             std::cout << std::endl;
         }
     }
-
 }
+
+// PLUGINLIB_EXPORT_CLASS(coverage_planner::CoveragePlanner, nav_core::BaseGlobalPlanner)

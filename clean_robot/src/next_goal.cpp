@@ -120,7 +120,7 @@ void path_callback(const nav_msgs::Path &path)
     {
       planned_path.addGoal(path.poses[i].pose.position.x, path.poses[i].pose.position.y, false);
 
-      cout << path.poses[i].pose.position.x << " " << path.poses[i].pose.position.y << endl;
+      // cout << path.poses[i].pose.position.x << " " << path.poses[i].pose.position.y << endl;
     }
     cout << "Recv path size: " << path.poses.size() << endl;
     taille_last_path = path.poses.size();
